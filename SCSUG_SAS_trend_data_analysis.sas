@@ -108,12 +108,12 @@ PROC REG data=trdata;
 	model_1: model Y = T;
 	run;
 
-	title2 'Just throw in a dummy variable';
-	model_3: model y = t d;
+title2 'Quadratic Model';
+	model_2: model Y = T TSQ;
 	run;
 
-	title2 'Quadratic Model';
-	model_2: model Y = T TSQ;
+title2 'Just throw in a dummy variable';
+	model_3: model y = t d;
 	run;
 
 	title2 'Structural break model';
@@ -138,9 +138,22 @@ PROC REG data=trdata;
 
 		quit;
 
+/* Code to generate the residual map in Model_1 */
+Title1 'Regression Specifications - full sample' ;
+Title2 'Examining the residuals to the linear trend model.';
+PROC REG data=trdata;
+	model_1R: model y = T;
+	output out=TR r=residual;
+	run;
+
+PROC SGPLOT data=tr;
+	reg x=T y=residual / degree=1 CLM CLI CLMTRANSPARENCY=.5;
+	loess x=T y=residual /interpolation=linear degree=2;  
+	&xref;
+	run;
+
 
 /* Non-nesting hypothesis tests */
-
 
 Title1 'Non-nested hypothesis - J-test';
 Proc reg data=trdata;
@@ -167,4 +180,21 @@ Proc reg data=trdata;
 		run;
 		quit;
 
+
+title 'SAS/ETS Proc Autoreg, Ramsey specification tests (RESET)';
+
+proc autoreg data=trdata;
+	model_1: model y = T  / reset;
+	run;
+proc autoreg data=trdata;
+	model_3: model y = T D / reset;
+	run;
+proc autoreg data=trdata;
+	model_4: model y = T D DT/ reset ;
+run;
+
+proc autoreg data=trdata;
+	model_2: model y = T TSQ/ reset;
+run;
 ods pdf close;
+
